@@ -196,6 +196,77 @@ sudo named-checkzone 100.168.192 /etc/bind/zones/db.192.168.100
 sudo systemctl restart bind9
 sudo ufw allow Bind9
 ```
+## create and run useradd script
+TODO
 
+## install and configure mariadb/mysql
+```
+sudo apt install mariadb-server
+sudo systemctl start mariadb.service
+sudo mysql_secure_installation
+```
+```
+sudo mariadb
+```
+``` sql
+GRANT ALL ON *.* TO 'admin'@'localhost' IDENTIFIED BY 'password123' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+exit;
+```
+## create Human Resources database
+```
+vim HRdb.sql
+```
+``` sql
+create database if not exists HumanResources;
+use HumanResources;
+
+create table Jobs
+(
+        ID int auto_increment,
+        title varchar(150),
+        minSalary int,
+        maxSalary int,
+        constraint PK primary key(ID)
+);
+
+create table Employees
+(
+        kennitala char(10),
+        firstname varchar(75),
+        lastname varchar(75),
+        email varchar(150),
+        phoneNumber varchar(12),
+        hireDate date,
+        salary int,
+        job int,
+        constraint job_FK foreign key(job)references Jobs(ID),
+        constraint PK primary key(kennitala)
+);
+
+create table Locations
+(
+        ID int unique,
+        city varchar(150),
+        address varchar(150),
+        zipCode int,
+        constraint PK primary key(ID)
+);
+
+create table Departments
+(
+        ID int unique,
+        departmentName varchar(100),
+        manager char(10),
+        location int,
+        constraint manager_FK foreign key(manager)references Employees(kennitala),
+        constraint location_FK foreign key(location)references Locations(ID),
+        constraint PK primary key(ID)
+);
+```
+```
+mariadb -u admin -p
+source /home/hinrik/HRdb.sql
+```
 
 
