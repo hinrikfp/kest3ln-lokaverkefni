@@ -80,7 +80,6 @@ NM_CONTROLLED-"no"
 ONBOOT=yes
 TYPE=Ethernet
 BOOTPROTO=dhcp
-GATEWAY=192.168.100.10
 DNS1=192.168.100.10
 ```
 
@@ -268,5 +267,114 @@ create table Departments
 mariadb -u admin -p
 source /home/hinrik/HRdb.sql
 ```
+## backup home directory weekly
+```
+crontab -e
+```
+```
+59 23	* * 5	tar -zcf /var/backups/home.tgz /home/
+```
+## set up ntp server using chrony
+```
+sudo apt install chrony
+sudo vim /etc/chrony/chrony.conf
+```
+add this line to configuration if default set up
+```
+allow 192.168.100.0/24
+```
+```
+sudo ufw allow ntp
+```
+### client1
+```
+sudo apt install chrony
+sudo vim /etc/chrony/chrony.conf
+```
+add line
+```
+server 192.168.100.10
+```
+test with chronyc
+```
+chronyc sources
+```
+### client2
+```
+sudo vim /etc/chrony.conf
+```
+add line
+```
+server 192.168.100.10
+```
+test with chronyc
+```
+chronyc sources
+```
+## setting up rsyslog
+```
+sudo vim /etc/rsyslog.conf
+```
+uncomment or add these lines
+```
+module(load="imudp")
+input(type="imudp" port="514")
+```
+uncomment and change these lines
+```
+module(load="imtcp")
+input(type="imtcp" port="50514")
+```
+```
+sudo ufw allow 514/udp
+sudo ufw allow 50514/tcp
+```
+```
+sudo vim /etc/rsyslog.conf
+```
+add these lines under global directives
+```
+AllowedSender UDP, 192.168.100.0/24, *.ddp.is 
+$AllowedSender TCP, 192.168.100.0/24, *.ddp.is
+```
+```
+sudo ufw allow from 192.168.100.0/24 to any port 514 proto udp
+sudo ufw allow from 192.168.100.0/24 to any port 50514 proto tcp
+
+```
+```
+sudo vim /etc/rsyslog.conf
+```
+add these lines to /etc/rsyslog.conf
+```
+$template RemInputLogs, "/var/log/remotelogs/%FROMHOST-IP%/%PROGRAMNAME%.log"
+*.* ?RemInputLogs
+```
+test config
+```
+sudo rsyslogd -f /etc/rsyslog.conf -N1
+```
+### configure logging to the server on the clients
+both clients:
+```
+sudo vim /etc/rsyslog.conf
+```
+```
+# send logs to remote syslog server over UDP
+*.* @192.168.100.10:514  
+```
+```
+sudo systemctl restart rsyslog
+```
+test logging  
+clients:
+```
+logger -t TEST -p mail.err 'testing logger'
+```
+server:
+```
+sudo ls /var/log/remotelogs/
+```
+
 
 
