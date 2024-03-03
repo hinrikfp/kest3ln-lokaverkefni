@@ -196,7 +196,24 @@ sudo systemctl restart bind9
 sudo ufw allow Bind9
 ```
 ## create and run useradd script
-TODO
+```
+vim addusers.sh
+```
+``` bash
+while IFS="," read -r full_name first_name last_name username email department ID
+do 
+	if [ -z "$full_name" ] || [ -z "$first_name" ] || [ -z "$last_name" ] || [ -z "$username" ] || [ -z "$email" ] || [ -z "$department" ] || [ -z "$ID" ]; then
+		continue
+	fi
+	echo "$full_name" "$first_name" "$last_name" "$username" "$email" "$department" "$ID"
+	getent group "$department" || groupadd "$department"
+	useradd -b /home/"$department" -m -g "$department" "$username"
+done < <(tail -n +2 Linux_Users.csv)
+```
+```
+chmod +x addusers.sh
+sudo bash addusers.sh
+```
 
 ## install and configure mariadb/mysql
 ```
@@ -375,6 +392,57 @@ server:
 ```
 sudo ls /var/log/remotelogs/
 ```
+
+## configure mail
+### install postfix
+```
+sudo apt install postfix
+```
+select "internet site"
+type "ddp.is"
+
+### install dovecot
+```
+sudo apt install dovecot-imapd dovecot-pop3d
+sudo systemctl restart dovecot
+```
+### install roundcube
+```
+wget https://github.com/roundcube/roundcubemail/releases/download/1.6.6/roundcubemail-1.6.6-complete.tar.gz
+tar tar xvf roundcubemail-1.6.6-complete.tar.gz 
+sudo mkdir /var/www/
+sudo mv roundcubemail-1.6.6 /var/www/roundcube
+cd /var/www/roundcube/
+sudo chown www-data:www-data temp/ logs/ -R
+```
+### install php extensions
+```
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:ondrej/php
+sudo apt update
+sudo apt install php-net-ldap2 php-net-ldap3 php-imagick php8.1-common php8.1-gd php8.1-imap php8.1-mysql php8.1-curl php8.1-zip php8.1-xml php8.1-mbstring php8.1-bz2 php8.1-intl php8.1-gmp php8.1-redis
+```
+### set up roundcube mysql database
+```
+sudo mysql -u root
+CREATE DATABASE roundcube DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE USER roundcube@localhost IDENTIFIED BY 'password123';
+GRANT ALL PRIVILEGES ON roundcube.* TO roundcube@localhost;
+flush privileges;
+exit;
+sudo mysql roundcube < /var/www/roundcube/SQL/mysql.initial.sql
+```
+### install and configure apache
+```
+sudo apt install apache2
+sudo nvim /etc/apache2/sites-available/server1.ddp.is.conf
+sudo a2ensite server1.ddp.is.conf
+sudo systemctl reload apache2
+```
+það var eitthvað vandamál með PHP þannig að ég náði ekki að klára að setju upp Roundcube
+
+## printers
+
 
 
 
