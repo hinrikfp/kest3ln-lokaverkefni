@@ -442,6 +442,33 @@ sudo systemctl reload apache2
 það var eitthvað vandamál með PHP þannig að ég náði ekki að klára að setju upp Roundcube
 
 ## printers
+todo
+
+## ssh
+### server:
+```
+sudo apt install openssh-server
+sudo ufw allow ssh
+```
+### client:
+```
+ssh-keygen
+```
+password: password123
+```
+ssh-copy-id hinrik@server1.ddp.is
+yes
+```
+### server:
+```
+sudo vim /etc/ssh/sshd_config
+```
+```
+PasswordAuthentication no
+```
+```
+sudo systemctl restart ssh
+```
 
 
 
