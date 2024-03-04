@@ -469,6 +469,10 @@ PasswordAuthentication no
 ```
 sudo systemctl restart ssh
 ```
+## nmap scan
+```
+nmap 192.168.100.10-20
+```
 
 
 
