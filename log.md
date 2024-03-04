@@ -207,7 +207,7 @@ do
 	fi
 	echo "$full_name" "$first_name" "$last_name" "$username" "$email" "$department" "$ID"
 	getent group "$department" || groupadd "$department"
-	useradd -b /home/"$department" -m -g "$department" -c "name: $full_name, email: $email" -u "$ID" "$username"
+	useradd -b /home/"$department" -s /bin/bash -m -g "$department" -c "$full_name,,,,$email" -u "$ID" "$username"
 done < <(tail -n +2 Linux_Users.csv)
 ```
 ```
